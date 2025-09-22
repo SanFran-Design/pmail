@@ -7,23 +7,55 @@ import { IMAPConfig, EmailMessage } from '@/types/email';
 function extractEmailAddresses(addressObj: any): string[] {
   if (!addressObj) return [];
   
-  // Handle single address object
-  if (!Array.isArray(addressObj)) {
-    if (typeof addressObj === 'string') return [addressObj];
-    return [addressObj.address || addressObj.value || addressObj.text || ''].filter(Boolean);
+  // If it's a string, return it as is
+  if (typeof addressObj === 'string') return [addressObj];
+  
+  // Handle mailparser address object format
+  if (addressObj.value && Array.isArray(addressObj.value)) {
+    return addressObj.value.map((addr: any) => {
+      if (typeof addr === 'string') return addr;
+      return addr.address || addr.email || String(addr) || '';
+    }).filter(Boolean);
+  }
+  
+  // Handle direct address object
+  if (addressObj.address) {
+    return [String(addressObj.address)];
   }
   
   // Handle array of address objects
-  return addressObj.map((addr: any) => {
-    if (typeof addr === 'string') return addr;
-    return addr.address || addr.value || addr.text || '';
-  }).filter(Boolean);
+  if (Array.isArray(addressObj)) {
+    return addressObj.map((addr: any) => {
+      if (typeof addr === 'string') return addr;
+      if (addr.address) return String(addr.address);
+      if (addr.email) return String(addr.email);
+      return String(addr.value || addr.text || addr || '');
+    }).filter(Boolean);
+  }
+  
+  // Fallback to text property
+  if (addressObj.text) {
+    // Extract email from "Name <email@domain.com>" format
+    const emailMatch = addressObj.text.match(/<([^>]+)>/);
+    if (emailMatch) return [emailMatch[1]];
+    return [addressObj.text];
+  }
+  
+  return [];
 }
 
 // Helper function to get a single email address (for 'from' field)
 function getFirstEmailAddress(addressObj: any): string {
   const addresses = extractEmailAddresses(addressObj);
-  return addresses[0] || 'Unknown';
+  const firstAddress = addresses[0] || 'Unknown';
+  
+  // Ensure we always return a string, never an object
+  if (typeof firstAddress === 'object' && firstAddress !== null) {
+    const addressAsAny = firstAddress as any;
+    return addressAsAny?.address || addressAsAny?.email || String(firstAddress) || 'Unknown';
+  }
+  
+  return String(firstAddress);
 }
 
 function connectToIMAP(config: IMAPConfig): Promise<Imap> {
@@ -87,14 +119,25 @@ function fetchEmails(imap: Imap, limit: number = 10): Promise<EmailMessage[]> {
             try {
               const parsed = await simpleParser(buffer);
               
+              // Debug logging to understand address structure
+              console.log('Email address debugging:', {
+                from: parsed.from,
+                to: parsed.to,
+                cc: parsed.cc
+              });
+              
               const toAddresses = extractEmailAddresses(parsed.to);
               const ccAddresses = extractEmailAddresses(parsed.cc);
+              
+              // Ensure all addresses are strings
+              const cleanToAddresses = toAddresses.map(addr => String(addr)).filter(Boolean);
+              const cleanCcAddresses = ccAddresses.map(addr => String(addr)).filter(Boolean);
               
               const emailMessage: EmailMessage = {
                 id: seqno.toString(),
                 from: getFirstEmailAddress(parsed.from),
-                to: toAddresses,
-                cc: ccAddresses.length > 0 ? ccAddresses : undefined,
+                to: cleanToAddresses,
+                cc: cleanCcAddresses.length > 0 ? cleanCcAddresses : undefined,
                 subject: parsed.subject || 'No Subject',
                 body: parsed.text || parsed.html || 'No content',
                 date: parsed.date || new Date(),
@@ -105,6 +148,14 @@ function fetchEmails(imap: Imap, limit: number = 10): Promise<EmailMessage[]> {
                   size: att.size || 0,
                 })),
               };
+
+              console.log('Processed email message:', {
+                id: emailMessage.id,
+                from: emailMessage.from,
+                to: emailMessage.to,
+                cc: emailMessage.cc,
+                subject: emailMessage.subject
+              });
 
               emails.push(emailMessage);
             } catch (parseError) {
