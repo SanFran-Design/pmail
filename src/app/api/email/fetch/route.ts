@@ -98,6 +98,7 @@ function fetchEmails(imap: Imap, limit: number = 10): Promise<EmailMessage[]> {
         // Get the most recent emails (limit to avoid overwhelming the client)
         const recentResults = results.slice(-limit);
         const emails: EmailMessage[] = [];
+        const parsingPromises: Promise<void>[] = [];
 
         const fetch = imap.fetch(recentResults, { bodies: '' });
         
@@ -115,52 +116,56 @@ function fetchEmails(imap: Imap, limit: number = 10): Promise<EmailMessage[]> {
             attributes = attrs;
           });
 
-          msg.once('end', async () => {
-            try {
-              const parsed = await simpleParser(buffer);
-              
-              // Debug logging to understand address structure
-              console.log('Email address debugging:', {
-                from: parsed.from,
-                to: parsed.to,
-                cc: parsed.cc
-              });
-              
-              const toAddresses = extractEmailAddresses(parsed.to);
-              const ccAddresses = extractEmailAddresses(parsed.cc);
-              
-              // Ensure all addresses are strings
-              const cleanToAddresses = toAddresses.map(addr => String(addr)).filter(Boolean);
-              const cleanCcAddresses = ccAddresses.map(addr => String(addr)).filter(Boolean);
-              
-              const emailMessage: EmailMessage = {
-                id: seqno.toString(),
-                from: getFirstEmailAddress(parsed.from),
-                to: cleanToAddresses,
-                cc: cleanCcAddresses.length > 0 ? cleanCcAddresses : undefined,
-                subject: parsed.subject || 'No Subject',
-                body: parsed.text || parsed.html || 'No content',
-                date: parsed.date || new Date(),
-                read: attributes.flags?.includes('\\Seen') || false,
-                attachments: parsed.attachments?.map(att => ({
-                  filename: att.filename || 'unknown',
-                  contentType: att.contentType,
-                  size: att.size || 0,
-                })),
-              };
+          msg.once('end', () => {
+            const parsingPromise = (async () => {
+              try {
+                const parsed = await simpleParser(buffer);
 
-              console.log('Processed email message:', {
-                id: emailMessage.id,
-                from: emailMessage.from,
-                to: emailMessage.to,
-                cc: emailMessage.cc,
-                subject: emailMessage.subject
-              });
+                // Debug logging to understand address structure
+                console.log('Email address debugging:', {
+                  from: parsed.from,
+                  to: parsed.to,
+                  cc: parsed.cc
+                });
 
-              emails.push(emailMessage);
-            } catch (parseError) {
-              console.error('Error parsing email:', parseError);
-            }
+                const toAddresses = extractEmailAddresses(parsed.to);
+                const ccAddresses = extractEmailAddresses(parsed.cc);
+
+                // Ensure all addresses are strings
+                const cleanToAddresses = toAddresses.map(addr => String(addr)).filter(Boolean);
+                const cleanCcAddresses = ccAddresses.map(addr => String(addr)).filter(Boolean);
+
+                const emailMessage: EmailMessage = {
+                  id: seqno.toString(),
+                  from: getFirstEmailAddress(parsed.from),
+                  to: cleanToAddresses,
+                  cc: cleanCcAddresses.length > 0 ? cleanCcAddresses : undefined,
+                  subject: parsed.subject || 'No Subject',
+                  body: parsed.text || parsed.html || 'No content',
+                  date: parsed.date || new Date(),
+                  read: attributes.flags?.includes('\\Seen') || false,
+                  attachments: parsed.attachments?.map(att => ({
+                    filename: att.filename || 'unknown',
+                    contentType: att.contentType,
+                    size: att.size || 0,
+                  })),
+                };
+
+                console.log('Processed email message:', {
+                  id: emailMessage.id,
+                  from: emailMessage.from,
+                  to: emailMessage.to,
+                  cc: emailMessage.cc,
+                  subject: emailMessage.subject
+                });
+
+                emails.push(emailMessage);
+              } catch (parseError) {
+                console.error('Error parsing email:', parseError);
+              }
+            })();
+
+            parsingPromises.push(parsingPromise);
           });
         });
 
@@ -168,7 +173,9 @@ function fetchEmails(imap: Imap, limit: number = 10): Promise<EmailMessage[]> {
           reject(err);
         });
 
-        fetch.once('end', () => {
+        fetch.once('end', async () => {
+          await Promise.all(parsingPromises);
+
           // Sort by date (newest first)
           emails.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
           resolve(emails);
