@@ -38,6 +38,8 @@ export default function Home() {
     if (!account && !emailAccount) return;
     
     const currentAccount = account || emailAccount;
+    if (!currentAccount) return; // Additional null check for TypeScript strict mode
+    
     setIsLoading(true);
     
     try {

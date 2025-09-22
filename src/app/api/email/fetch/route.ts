@@ -1,7 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Imap from 'imap';
-import { simpleParser } from 'mailparser';
+import { simpleParser, AddressObject } from 'mailparser';
 import { IMAPConfig, EmailMessage } from '@/types/email';
+
+// Helper function to extract email addresses from mailparser AddressObject
+function extractEmailAddresses(addressObj: any): string[] {
+  if (!addressObj) return [];
+  
+  // Handle single address object
+  if (!Array.isArray(addressObj)) {
+    if (typeof addressObj === 'string') return [addressObj];
+    return [addressObj.address || addressObj.value || addressObj.text || ''].filter(Boolean);
+  }
+  
+  // Handle array of address objects
+  return addressObj.map((addr: any) => {
+    if (typeof addr === 'string') return addr;
+    return addr.address || addr.value || addr.text || '';
+  }).filter(Boolean);
+}
+
+// Helper function to get a single email address (for 'from' field)
+function getFirstEmailAddress(addressObj: any): string {
+  const addresses = extractEmailAddresses(addressObj);
+  return addresses[0] || 'Unknown';
+}
 
 function connectToIMAP(config: IMAPConfig): Promise<Imap> {
   return new Promise((resolve, reject) => {
@@ -64,11 +87,14 @@ function fetchEmails(imap: Imap, limit: number = 10): Promise<EmailMessage[]> {
             try {
               const parsed = await simpleParser(buffer);
               
+              const toAddresses = extractEmailAddresses(parsed.to);
+              const ccAddresses = extractEmailAddresses(parsed.cc);
+              
               const emailMessage: EmailMessage = {
                 id: seqno.toString(),
-                from: parsed.from?.text || 'Unknown',
-                to: parsed.to?.text ? [parsed.to.text] : [],
-                cc: parsed.cc?.text ? [parsed.cc.text] : undefined,
+                from: getFirstEmailAddress(parsed.from),
+                to: toAddresses,
+                cc: ccAddresses.length > 0 ? ccAddresses : undefined,
                 subject: parsed.subject || 'No Subject',
                 body: parsed.text || parsed.html || 'No content',
                 date: parsed.date || new Date(),
