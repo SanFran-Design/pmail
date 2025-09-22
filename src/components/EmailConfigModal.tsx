@@ -142,7 +142,7 @@ export default function EmailConfigModal({ onClose, onSave }: EmailConfigModalPr
             </div>
             {formData.provider === 'gmail' && (
               <p className="mt-1 text-xs text-gray-500">
-                For Gmail, you'll need to use an App Password. Enable 2FA and generate an App Password in your Google Account settings.
+                For Gmail, you must use an App Password. Enable 2FA and generate an App Password in your Google Account settings.
               </p>
             )}
           </div>

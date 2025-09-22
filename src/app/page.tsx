@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { EmailMessage, EmailAccount } from '@/types/email';
 import { Mail, Send, RefreshCw, Settings, Plus } from 'lucide-react';
 import EmailList from '@/components/EmailList';
@@ -18,26 +18,9 @@ export default function Home() {
   const [emailAccount, setEmailAccount] = useState<EmailAccount | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Check if user has saved email configuration on component mount
-  useEffect(() => {
-    const savedConfig = localStorage.getItem('emailAccount');
-    if (savedConfig) {
-      try {
-        const account = JSON.parse(savedConfig);
-        setEmailAccount(account);
-        setIsConfigured(true);
-        // Auto-fetch emails on startup
-        fetchEmails(account);
-      } catch (error) {
-        console.error('Failed to parse saved email config:', error);
-        localStorage.removeItem('emailAccount');
-      }
-    }
-  }, []);
-
-  const fetchEmails = async (account?: EmailAccount) => {
+  const fetchEmails = useCallback(async (account?: EmailAccount) => {
     if (!account && !emailAccount) return;
-    
+
     const currentAccount = account || emailAccount;
     if (!currentAccount) return; // Additional null check for TypeScript strict mode
     
@@ -69,7 +52,24 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [emailAccount]);
+
+  // Check if user has saved email configuration on component mount
+  useEffect(() => {
+    const savedConfig = localStorage.getItem('emailAccount');
+    if (savedConfig) {
+      try {
+        const account = JSON.parse(savedConfig);
+        setEmailAccount(account);
+        setIsConfigured(true);
+        // Auto-fetch emails on startup
+        fetchEmails(account);
+      } catch (error) {
+        console.error('Failed to parse saved email config:', error);
+        localStorage.removeItem('emailAccount');
+      }
+    }
+  }, [fetchEmails]);
 
   const handleRefresh = async () => {
     await fetchEmails();
