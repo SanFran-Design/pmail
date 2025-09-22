@@ -6,6 +6,7 @@ import { Mail, Send, RefreshCw, Settings, Plus } from 'lucide-react';
 import EmailList from '@/components/EmailList';
 import ComposeModal from '@/components/ComposeModal';
 import EmailConfigModal from '@/components/EmailConfigModal';
+import EmailContent from '@/components/EmailContent';
 import { formatEmailDate } from '@/lib/utils';
 
 export default function Home() {
@@ -225,8 +226,11 @@ export default function Home() {
                     <span>{formatEmailDate(selectedEmail.date)}</span>
                   </div>
                 </div>
-                <div className="prose max-w-none">
-                  <p className="whitespace-pre-wrap">{selectedEmail.body}</p>
+                <div className="mt-4">
+                  <EmailContent 
+                    content={selectedEmail.body}
+                    className="prose max-w-none"
+                  />
                 </div>
               </div>
             ) : (
