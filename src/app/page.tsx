@@ -78,6 +78,13 @@ export default function Home() {
       return;
     }
 
+    console.log('Sending email with data:', emailData);
+    console.log('Using SMTP config:', {
+      host: emailAccount.smtpConfig.host,
+      port: emailAccount.smtpConfig.port,
+      user: emailAccount.smtpConfig.auth.user
+    });
+
     setIsLoading(true);
     
     try {
@@ -93,6 +100,7 @@ export default function Home() {
       });
 
       const data = await response.json();
+      console.log('Email send response:', data);
       
       if (data.success) {
         alert('Email sent successfully!');
@@ -100,11 +108,12 @@ export default function Home() {
         // Optionally refresh emails to show sent email
         await fetchEmails();
       } else {
+        console.error('Email send failed:', data);
         alert(`Failed to send email: ${data.error}`);
       }
     } catch (error) {
       console.error('Error sending email:', error);
-      alert('Failed to send email. Please try again.');
+      alert('Network error while sending email. Please check your connection.');
     } finally {
       setIsLoading(false);
     }

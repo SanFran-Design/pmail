@@ -5,7 +5,7 @@ import { SMTPConfig, IMAPConfig } from '@/types/email';
 
 async function testSMTPConnection(config: SMTPConfig): Promise<boolean> {
   try {
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       host: config.host,
       port: config.port,
       secure: config.secure,
