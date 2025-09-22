@@ -23,16 +23,24 @@ async function testSMTPConnection(config: SMTPConfig): Promise<boolean> {
   }
 }
 
+const allowSelfSignedTls =
+  process.env.NODE_ENV !== 'production' && process.env.IMAP_ALLOW_SELF_SIGNED === 'true';
+
 async function testIMAPConnection(config: IMAPConfig): Promise<boolean> {
   return new Promise((resolve) => {
-    const imap = new Imap({
+    const imapOptions: Imap.Config = {
       user: config.auth.user,
       password: config.auth.pass,
       host: config.host,
       port: config.port,
       tls: config.tls,
-      tlsOptions: { rejectUnauthorized: false },
-    });
+    };
+
+    if (allowSelfSignedTls) {
+      imapOptions.tlsOptions = { rejectUnauthorized: false };
+    }
+
+    const imap = new Imap(imapOptions);
 
     let resolved = false;
 

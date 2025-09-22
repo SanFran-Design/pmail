@@ -118,6 +118,23 @@ You can add custom SMTP/IMAP servers by modifying the `EMAIL_PROVIDERS` configur
 - **Production**: Consider implementing proper authentication and encrypted credential storage
 - **Gmail**: Always use App Passwords, never your main password
 - **Network**: All email connections use TLS/SSL encryption
+- **TLS Verification**: IMAP connections require valid certificates. To enable self-signed certificates for debugging (non-production only), set `IMAP_ALLOW_SELF_SIGNED=true` in your environment.
+
+## Manual TLS Verification
+
+Verify that TLS negotiation works against providers with trusted certificates using the included script:
+
+```bash
+npm run verify:imap-tls
+```
+
+By default this checks `imap.gmail.com:993`. You can override the target with environment variables:
+
+```bash
+IMAP_VERIFY_HOST=outlook.office365.com IMAP_VERIFY_PORT=993 npm run verify:imap-tls
+```
+
+The command connects using Node's default certificate store and fails if the certificate chain is not trusted, confirming the application no longer bypasses TLS verification.
 
 ## File Structure
 

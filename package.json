@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "verify:imap-tls": "node scripts/verify-imap-tls.mjs"
   },
   "dependencies": {
     "@types/dompurify": "^3.0.5",
