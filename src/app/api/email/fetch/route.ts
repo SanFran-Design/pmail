@@ -58,16 +58,24 @@ function getFirstEmailAddress(addressObj: any): string {
   return String(firstAddress);
 }
 
+const allowSelfSignedTls =
+  process.env.NODE_ENV !== 'production' && process.env.IMAP_ALLOW_SELF_SIGNED === 'true';
+
 function connectToIMAP(config: IMAPConfig): Promise<Imap> {
   return new Promise((resolve, reject) => {
-    const imap = new Imap({
+    const imapOptions: Imap.Config = {
       user: config.auth.user,
       password: config.auth.pass,
       host: config.host,
       port: config.port,
       tls: config.tls,
-      tlsOptions: { rejectUnauthorized: false },
-    });
+    };
+
+    if (allowSelfSignedTls) {
+      imapOptions.tlsOptions = { rejectUnauthorized: false };
+    }
+
+    const imap = new Imap(imapOptions);
 
     imap.once('ready', () => resolve(imap));
     imap.once('error', (err: Error) => reject(err));
