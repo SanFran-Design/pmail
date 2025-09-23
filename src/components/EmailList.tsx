@@ -2,7 +2,7 @@
 
 import { EmailMessage } from '@/types/email';
 import { clsx } from 'clsx';
-import { formatEmailDate } from '@/lib/utils';
+import { formatEmailDateTime } from '@/lib/utils';
 
 interface EmailListProps {
   emails: EmailMessage[];
@@ -42,7 +42,7 @@ export default function EmailList({ emails, selectedEmail, onEmailSelect }: Emai
                 {email.from}
               </span>
               <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
-                {formatEmailDate(email.date)}
+                {formatEmailDateTime(email.date)}
               </span>
             </div>
             <h3 className={clsx(
