@@ -8,9 +8,10 @@ interface EmailListProps {
   emails: EmailMessage[];
   selectedEmail: EmailMessage | null;
   onEmailSelect: (email: EmailMessage) => void;
+  lastRefreshTime: Date | null;
 }
 
-export default function EmailList({ emails, selectedEmail, onEmailSelect }: EmailListProps) {
+export default function EmailList({ emails, selectedEmail, onEmailSelect, lastRefreshTime }: EmailListProps) {
   if (emails.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow p-6 text-center">
@@ -22,7 +23,14 @@ export default function EmailList({ emails, selectedEmail, onEmailSelect }: Emai
   return (
     <div className="bg-white rounded-lg shadow">
       <div className="p-4 border-b">
-        <h2 className="font-semibold text-gray-900">Inbox ({emails.length})</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="font-semibold text-gray-900">Inbox ({emails.length})</h2>
+          {lastRefreshTime && (
+            <div className="text-xs text-gray-500">
+              Last updated: {formatEmailDateTime(lastRefreshTime)}
+            </div>
+          )}
+        </div>
       </div>
       <div className="divide-y">
         {emails.map((email) => (

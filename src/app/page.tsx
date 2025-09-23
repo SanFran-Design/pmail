@@ -7,7 +7,7 @@ import EmailList from '@/components/EmailList';
 import ComposeModal from '@/components/ComposeModal';
 import EmailConfigModal from '@/components/EmailConfigModal';
 import EmailContent from '@/components/EmailContent';
-import { formatEmailDate } from '@/lib/utils';
+import { formatEmailDate, formatEmailDateTime } from '@/lib/utils';
 
 export default function Home() {
   const [emails, setEmails] = useState<EmailMessage[]>([]);
@@ -17,6 +17,7 @@ export default function Home() {
   const [isConfigured, setIsConfigured] = useState(false);
   const [emailAccount, setEmailAccount] = useState<EmailAccount | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null);
 
   // Check if user has saved email configuration on component mount
   useEffect(() => {
@@ -59,6 +60,7 @@ export default function Home() {
       
       if (data.success) {
         setEmails(data.emails);
+        setLastRefreshTime(new Date());
       } else {
         console.error('Failed to fetch emails:', data.error);
         alert(`Failed to fetch emails: ${data.error}`);
@@ -210,6 +212,7 @@ export default function Home() {
               emails={emails}
               selectedEmail={selectedEmail}
               onEmailSelect={handleEmailSelect}
+              lastRefreshTime={lastRefreshTime}
             />
           </div>
 
