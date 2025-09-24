@@ -1,6 +1,7 @@
 export interface EmailMessage {
   id: string;
   from: string;
+  fromName?: string;
   to: string[];
   cc?: string[];
   bcc?: string[];

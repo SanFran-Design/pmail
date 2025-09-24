@@ -278,7 +278,16 @@ export default function Home() {
                     </button>
                   </div>
                   <div className="text-sm text-gray-600">
-                    <div className="mb-1">From: {selectedEmail.from}</div>
+                    <div className="mb-1">
+                      From: {selectedEmail.fromName ? (
+                        <span>
+                          <span className="font-medium">{selectedEmail.fromName}</span>
+                          <span className="text-gray-500"> &lt;{selectedEmail.from}&gt;</span>
+                        </span>
+                      ) : (
+                        selectedEmail.from
+                      )}
+                    </div>
                     <div>{formatEmailDate(selectedEmail.date)}</div>
                   </div>
                 </div>
@@ -329,7 +338,16 @@ export default function Home() {
                       </button>
                     </div>
                     <div className="flex items-center justify-between text-sm text-gray-600">
-                      <span>From: {selectedEmail.from}</span>
+                      <span>
+                        From: {selectedEmail.fromName ? (
+                          <span>
+                            <span className="font-medium">{selectedEmail.fromName}</span>
+                            <span className="text-gray-500"> &lt;{selectedEmail.from}&gt;</span>
+                          </span>
+                        ) : (
+                          selectedEmail.from
+                        )}
+                      </span>
                       <span>{formatEmailDate(selectedEmail.date)}</span>
                     </div>
                   </div>

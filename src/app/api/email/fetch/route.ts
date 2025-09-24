@@ -59,6 +59,44 @@ function getFirstEmailAddress(addressObj: any): string {
   return String(firstAddress);
 }
 
+// Helper function to extract both sender name and email address
+function getSenderInfo(addressObj: any): { email: string; name?: string } {
+  if (!addressObj) return { email: 'Unknown' };
+  
+  // Handle mailparser address object format with value array
+  if (addressObj.value && Array.isArray(addressObj.value) && addressObj.value.length > 0) {
+    const first = addressObj.value[0];
+    if (first.name && first.address) {
+      return { email: String(first.address), name: String(first.name) };
+    }
+    if (first.address) {
+      return { email: String(first.address) };
+    }
+  }
+  
+  // Handle direct address object
+  if (addressObj.name && addressObj.address) {
+    return { email: String(addressObj.address), name: String(addressObj.name) };
+  }
+  
+  // Handle text format like "John Doe <john@example.com>"
+  if (addressObj.text) {
+    const nameEmailMatch = addressObj.text.match(/^(.+?)\s*<([^>]+)>$/);
+    if (nameEmailMatch) {
+      return { 
+        email: nameEmailMatch[2].trim(), 
+        name: nameEmailMatch[1].trim() 
+      };
+    }
+    // If no angle brackets, assume it's just an email
+    return { email: addressObj.text };
+  }
+  
+  // Fallback to just email address
+  const email = getFirstEmailAddress(addressObj);
+  return { email };
+}
+
 function connectToIMAP(config: IMAPConfig): Promise<Imap> {
   return new Promise((resolve, reject) => {
     const imap = new Imap({
@@ -144,13 +182,14 @@ function fetchEmails(imap: Imap, limit: number = 10): Promise<EmailMessage[]> {
               const cleanToAddresses = toAddresses.map(addr => String(addr)).filter(Boolean);
               const cleanCcAddresses = ccAddresses.map(addr => String(addr)).filter(Boolean);
               
-              const fromAddress = getFirstEmailAddress(parsed.from);
+              const senderInfo = getSenderInfo(parsed.from);
               const subject = parsed.subject || 'No Subject';
               const body = parsed.text || parsed.html || 'No content';
               
               const emailMessage: EmailMessage = {
                 id: attributes.uid?.toString() || seqno.toString(),
-                from: fromAddress,
+                from: senderInfo.email,
+                fromName: senderInfo.name,
                 to: cleanToAddresses,
                 cc: cleanCcAddresses.length > 0 ? cleanCcAddresses : undefined,
                 subject: subject,
@@ -162,7 +201,7 @@ function fetchEmails(imap: Imap, limit: number = 10): Promise<EmailMessage[]> {
                   contentType: att.contentType,
                   size: att.size || 0,
                 })),
-                category: categorizeEmail(fromAddress, subject, body),
+                category: categorizeEmail(senderInfo.email, subject, body),
               };
 
               console.log('Processed email message:', {

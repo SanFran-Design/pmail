@@ -51,9 +51,22 @@ function EmailSection({ title, icon, emails, selectedEmail, onEmailSelect, iconC
             )}
           >
             <div className="flex items-start justify-between mb-1">
-              <span className="text-sm font-medium text-gray-900 truncate flex-1 min-w-0">
-                {email.from}
-              </span>
+              <div className="flex-1 min-w-0">
+                {email.fromName ? (
+                  <div>
+                    <span className="text-sm font-medium text-gray-900 truncate block">
+                      {email.fromName}
+                    </span>
+                    <span className="text-xs text-gray-500 truncate block">
+                      {email.from}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-sm font-medium text-gray-900 truncate block">
+                    {email.from}
+                  </span>
+                )}
+              </div>
               <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
                 {formatEmailDateTime(email.date)}
               </span>
