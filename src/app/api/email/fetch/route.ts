@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Imap from 'imap';
 import { simpleParser, AddressObject } from 'mailparser';
 import { IMAPConfig, EmailMessage } from '@/types/email';
+import { categorizeEmail } from '@/lib/utils';
 
 // Helper function to extract email addresses from mailparser AddressObject
 function extractEmailAddresses(addressObj: any): string[] {
@@ -143,13 +144,17 @@ function fetchEmails(imap: Imap, limit: number = 10): Promise<EmailMessage[]> {
               const cleanToAddresses = toAddresses.map(addr => String(addr)).filter(Boolean);
               const cleanCcAddresses = ccAddresses.map(addr => String(addr)).filter(Boolean);
               
+              const fromAddress = getFirstEmailAddress(parsed.from);
+              const subject = parsed.subject || 'No Subject';
+              const body = parsed.text || parsed.html || 'No content';
+              
               const emailMessage: EmailMessage = {
                 id: attributes.uid?.toString() || seqno.toString(),
-                from: getFirstEmailAddress(parsed.from),
+                from: fromAddress,
                 to: cleanToAddresses,
                 cc: cleanCcAddresses.length > 0 ? cleanCcAddresses : undefined,
-                subject: parsed.subject || 'No Subject',
-                body: parsed.text || parsed.html || 'No content',
+                subject: subject,
+                body: body,
                 date: parsed.date || new Date(),
                 read: attributes.flags?.includes('\\Seen') || false,
                 attachments: parsed.attachments?.map(att => ({
@@ -157,6 +162,7 @@ function fetchEmails(imap: Imap, limit: number = 10): Promise<EmailMessage[]> {
                   contentType: att.contentType,
                   size: att.size || 0,
                 })),
+                category: categorizeEmail(fromAddress, subject, body),
               };
 
               console.log('Processed email message:', {

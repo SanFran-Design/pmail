@@ -9,6 +9,7 @@ export interface EmailMessage {
   date: Date;
   read: boolean;
   attachments?: EmailAttachment[];
+  category: 'automated' | 'human';
 }
 
 export interface EmailAttachment {
