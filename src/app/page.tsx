@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { EmailMessage, EmailAccount } from '@/types/email';
-import { Mail, Send, RefreshCw, Settings, Plus } from 'lucide-react';
+import { Mail, Send, RefreshCw, Settings, Plus, Reply } from 'lucide-react';
 import EmailList from '@/components/EmailList';
 import ComposeModal from '@/components/ComposeModal';
 import EmailConfigModal from '@/components/EmailConfigModal';
@@ -14,6 +14,7 @@ export default function Home() {
   const [showCompose, setShowCompose] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState<EmailMessage | null>(null);
+  const [replyToEmail, setReplyToEmail] = useState<EmailMessage | null>(null);
   const [isConfigured, setIsConfigured] = useState(false);
   const [emailAccount, setEmailAccount] = useState<EmailAccount | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -169,6 +170,11 @@ export default function Home() {
     }
   };
 
+  const handleReply = (email: EmailMessage) => {
+    setReplyToEmail(email);
+    setShowCompose(true);
+  };
+
   if (!isConfigured) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -249,18 +255,27 @@ export default function Home() {
               <div className="bg-white rounded-lg shadow h-full flex flex-col">
                 {/* Mobile email view header with back button */}
                 <div className="flex-shrink-0 border-b p-4">
-                  <div className="flex items-center mb-3">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center flex-1 min-w-0">
+                      <button
+                        onClick={() => setSelectedEmail(null)}
+                        className="mr-3 p-1 hover:bg-gray-100 rounded"
+                      >
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </button>
+                      <h2 className="text-lg font-semibold text-gray-900 truncate">
+                        {selectedEmail.subject}
+                      </h2>
+                    </div>
                     <button
-                      onClick={() => setSelectedEmail(null)}
-                      className="mr-3 p-1 hover:bg-gray-100 rounded"
+                      onClick={() => handleReply(selectedEmail)}
+                      className="ml-2 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                      title="Reply"
                     >
-                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                      </svg>
+                      <Reply className="h-5 w-5 text-gray-600" />
                     </button>
-                    <h2 className="text-lg font-semibold text-gray-900 truncate">
-                      {selectedEmail.subject}
-                    </h2>
                   </div>
                   <div className="text-sm text-gray-600">
                     <div className="mb-1">From: {selectedEmail.from}</div>
@@ -301,9 +316,18 @@ export default function Home() {
               {selectedEmail ? (
                 <div className="bg-white rounded-lg shadow h-full flex flex-col">
                   <div className="flex-shrink-0 border-b p-6 pb-4">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                      {selectedEmail.subject}
-                    </h2>
+                    <div className="flex items-center justify-between mb-2">
+                      <h2 className="text-xl font-semibold text-gray-900">
+                        {selectedEmail.subject}
+                      </h2>
+                      <button
+                        onClick={() => handleReply(selectedEmail)}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        title="Reply"
+                      >
+                        <Reply className="h-5 w-5 text-gray-600" />
+                      </button>
+                    </div>
                     <div className="flex items-center justify-between text-sm text-gray-600">
                       <span>From: {selectedEmail.from}</span>
                       <span>{formatEmailDate(selectedEmail.date)}</span>
@@ -332,8 +356,12 @@ export default function Home() {
       {/* Modals */}
       {showCompose && (
         <ComposeModal
-          onClose={() => setShowCompose(false)}
+          onClose={() => {
+            setShowCompose(false);
+            setReplyToEmail(null);
+          }}
           onSend={handleSendEmail}
+          replyToEmail={replyToEmail}
         />
       )}
       {showConfig && (

@@ -1,15 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Send } from 'lucide-react';
-import { ComposeEmail } from '@/types/email';
+import { ComposeEmail, EmailMessage } from '@/types/email';
 
 interface ComposeModalProps {
   onClose: () => void;
   onSend: (email: ComposeEmail) => void;
+  replyToEmail?: EmailMessage | null;
 }
 
-export default function ComposeModal({ onClose, onSend }: ComposeModalProps) {
+export default function ComposeModal({ onClose, onSend, replyToEmail }: ComposeModalProps) {
   const [formData, setFormData] = useState<ComposeEmail>({
     to: '',
     cc: '',
@@ -19,6 +20,33 @@ export default function ComposeModal({ onClose, onSend }: ComposeModalProps) {
   });
 
   const [isSending, setIsSending] = useState(false);
+
+  // Handle reply email data
+  useEffect(() => {
+    if (replyToEmail) {
+      // Pre-fill form with reply data
+      const replySubject = replyToEmail.subject.startsWith('Re: ') 
+        ? replyToEmail.subject 
+        : `Re: ${replyToEmail.subject}`;
+      
+      setFormData({
+        to: replyToEmail.from,
+        cc: '',
+        bcc: '',
+        subject: replySubject,
+        body: `\n\n--- Original Message ---\nFrom: ${replyToEmail.from}\nDate: ${replyToEmail.date.toLocaleString()}\nSubject: ${replyToEmail.subject}\n\n${replyToEmail.body}`,
+      });
+    } else {
+      // Reset form for new email
+      setFormData({
+        to: '',
+        cc: '',
+        bcc: '',
+        subject: '',
+        body: '',
+      });
+    }
+  }, [replyToEmail]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +79,9 @@ export default function ComposeModal({ onClose, onSend }: ComposeModalProps) {
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-3 sm:p-4 border-b flex-shrink-0">
-          <h2 className="text-lg font-semibold text-gray-900">Compose Email</h2>
+          <h2 className="text-lg font-semibold text-gray-900">
+            {replyToEmail ? 'Reply to Email' : 'Compose Email'}
+          </h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors p-1"
