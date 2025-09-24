@@ -7,6 +7,7 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'PMail - Personal Email Client',
   description: 'A modern email client for Gmail and other SMTP servers',
+  viewport: 'width=device-width, initial-scale=1',
 }
 
 export default function RootLayout({

@@ -171,12 +171,12 @@ export default function Home() {
 
   if (!isConfigured) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full mx-4">
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="bg-white p-6 sm:p-8 rounded-lg shadow-lg max-w-md w-full">
           <div className="text-center mb-6">
             <Mail className="mx-auto h-12 w-12 text-primary-500 mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome to PMail</h1>
-            <p className="text-gray-600">Configure your email account to get started</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Welcome to PMail</h1>
+            <p className="text-sm sm:text-base text-gray-600">Configure your email account to get started</p>
           </div>
           <button
             onClick={() => setShowConfig(true)}
@@ -213,25 +213,25 @@ export default function Home() {
               <Mail className="h-8 w-8 text-primary-500 mr-2" />
               <h1 className="text-xl font-semibold text-gray-900">PMail</h1>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <button
                 onClick={() => setShowCompose(true)}
-                className="btn-primary flex items-center"
+                className="btn-primary flex items-center text-sm sm:text-base"
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Compose
+                <Plus className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Compose</span>
               </button>
               <button
                 onClick={handleRefresh}
-                className="btn-secondary flex items-center"
+                className="btn-secondary flex items-center text-sm sm:text-base"
                 disabled={isLoading}
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                {isLoading ? 'Loading...' : 'Refresh'}
+                <RefreshCw className={`h-4 w-4 mr-1 sm:mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">{isLoading ? 'Loading...' : 'Refresh'}</span>
               </button>
               <button
                 onClick={() => setShowConfig(true)}
-                className="btn-secondary flex items-center"
+                className="btn-secondary flex items-center p-2 sm:px-4 sm:py-2"
               >
                 <Settings className="h-4 w-4" />
               </button>
@@ -242,8 +242,50 @@ export default function Home() {
 
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
-          <div className="flex flex-col lg:flex-row gap-6 h-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 h-full">
+          {/* Mobile: Show email list or email view based on selection */}
+          <div className="block lg:hidden h-full">
+            {selectedEmail ? (
+              <div className="bg-white rounded-lg shadow h-full flex flex-col">
+                {/* Mobile email view header with back button */}
+                <div className="flex-shrink-0 border-b p-4">
+                  <div className="flex items-center mb-3">
+                    <button
+                      onClick={() => setSelectedEmail(null)}
+                      className="mr-3 p-1 hover:bg-gray-100 rounded"
+                    >
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <h2 className="text-lg font-semibold text-gray-900 truncate">
+                      {selectedEmail.subject}
+                    </h2>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    <div className="mb-1">From: {selectedEmail.from}</div>
+                    <div>{formatEmailDate(selectedEmail.date)}</div>
+                  </div>
+                </div>
+                <div className="flex-1 overflow-auto p-4">
+                  <EmailContent 
+                    content={selectedEmail.body}
+                    className="prose max-w-none"
+                  />
+                </div>
+              </div>
+            ) : (
+              <EmailList
+                emails={emails}
+                selectedEmail={selectedEmail}
+                onEmailSelect={handleEmailSelect}
+                lastRefreshTime={lastRefreshTime}
+              />
+            )}
+          </div>
+
+          {/* Desktop: Side-by-side layout */}
+          <div className="hidden lg:flex flex-col lg:flex-row gap-6 h-full">
             {/* Email List */}
             <div className="flex-1 lg:max-w-md h-full">
               <EmailList

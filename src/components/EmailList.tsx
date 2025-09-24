@@ -22,11 +22,11 @@ export default function EmailList({ emails, selectedEmail, onEmailSelect, lastRe
 
   return (
     <div className="bg-white rounded-lg shadow h-full flex flex-col">
-      <div className="p-4 border-b flex-shrink-0">
+      <div className="p-3 sm:p-4 border-b flex-shrink-0">
         <div className="flex justify-between items-center">
-          <h2 className="font-semibold text-gray-900">Inbox ({emails.length})</h2>
+          <h2 className="font-semibold text-gray-900 text-sm sm:text-base">Inbox ({emails.length})</h2>
           {lastRefreshTime && (
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-gray-500 hidden sm:block">
               Last updated: {formatEmailDateTime(lastRefreshTime)}
             </div>
           )}
@@ -39,7 +39,7 @@ export default function EmailList({ emails, selectedEmail, onEmailSelect, lastRe
               key={email.id}
               onClick={() => onEmailSelect(email)}
               className={clsx(
-                'p-4 cursor-pointer hover:bg-gray-50 transition-colors',
+                'p-3 sm:p-4 cursor-pointer hover:bg-gray-50 transition-colors touch-manipulation',
                 {
                   'bg-blue-50 border-r-4 border-r-blue-500': selectedEmail?.id === email.id,
                   'font-semibold': !email.read,
@@ -47,7 +47,7 @@ export default function EmailList({ emails, selectedEmail, onEmailSelect, lastRe
               )}
             >
               <div className="flex items-start justify-between mb-1">
-                <span className="text-sm font-medium text-gray-900 truncate">
+                <span className="text-sm font-medium text-gray-900 truncate flex-1 min-w-0">
                   {email.from}
                 </span>
                 <span className="text-xs text-gray-500 ml-2 flex-shrink-0">
@@ -60,8 +60,8 @@ export default function EmailList({ emails, selectedEmail, onEmailSelect, lastRe
               )}>
                 {email.subject}
               </h3>
-              <p className="text-xs text-gray-500 truncate">
-                {email.body.substring(0, 100)}...
+              <p className="text-xs text-gray-500 truncate leading-relaxed">
+                {email.body.substring(0, 80)}...
               </p>
               {!email.read && (
                 <div className="mt-2">

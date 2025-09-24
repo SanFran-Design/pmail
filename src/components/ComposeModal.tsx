@@ -47,22 +47,22 @@ export default function ComposeModal({ onClose, onSend }: ComposeModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center justify-between p-3 sm:p-4 border-b flex-shrink-0">
           <h2 className="text-lg font-semibold text-gray-900">Compose Email</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors p-1"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1">
-          <div className="p-4 space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="p-3 sm:p-4 space-y-3 sm:space-y-4 overflow-y-auto flex-1">
             {/* To Field */}
             <div>
               <label htmlFor="to" className="block text-sm font-medium text-gray-700 mb-1">
@@ -73,7 +73,7 @@ export default function ComposeModal({ onClose, onSend }: ComposeModalProps) {
                 id="to"
                 value={formData.to}
                 onChange={(e) => handleChange('to', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-base"
                 placeholder="recipient@example.com"
                 required
               />
@@ -89,7 +89,7 @@ export default function ComposeModal({ onClose, onSend }: ComposeModalProps) {
                 id="cc"
                 value={formData.cc}
                 onChange={(e) => handleChange('cc', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-base"
                 placeholder="cc@example.com"
               />
             </div>
@@ -104,7 +104,7 @@ export default function ComposeModal({ onClose, onSend }: ComposeModalProps) {
                 id="bcc"
                 value={formData.bcc}
                 onChange={(e) => handleChange('bcc', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-base"
                 placeholder="bcc@example.com"
               />
             </div>
@@ -119,14 +119,14 @@ export default function ComposeModal({ onClose, onSend }: ComposeModalProps) {
                 id="subject"
                 value={formData.subject}
                 onChange={(e) => handleChange('subject', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-base"
                 placeholder="Enter email subject"
                 required
               />
             </div>
 
             {/* Body Field */}
-            <div className="flex-1">
+            <div className="flex-1 min-h-[200px]">
               <label htmlFor="body" className="block text-sm font-medium text-gray-700 mb-1">
                 Message
               </label>
@@ -134,30 +134,30 @@ export default function ComposeModal({ onClose, onSend }: ComposeModalProps) {
                 id="body"
                 value={formData.body}
                 onChange={(e) => handleChange('body', e.target.value)}
-                rows={12}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-vertical"
+                rows={8}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-vertical text-base h-full min-h-[200px]"
                 placeholder="Type your message here..."
               />
             </div>
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between p-4 border-t bg-gray-50">
-            <div className="text-sm text-gray-500">
+          <div className="flex items-center justify-between p-3 sm:p-4 border-t bg-gray-50 flex-shrink-0">
+            <div className="text-xs sm:text-sm text-gray-500 hidden sm:block">
               * Required fields
             </div>
-            <div className="flex space-x-3">
+            <div className="flex space-x-2 sm:space-x-3 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={onClose}
-                className="btn-secondary"
+                className="btn-secondary flex-1 sm:flex-none"
                 disabled={isSending}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="btn-primary flex items-center"
+                className="btn-primary flex items-center justify-center flex-1 sm:flex-none"
                 disabled={isSending}
               >
                 {isSending ? (
