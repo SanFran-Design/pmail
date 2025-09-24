@@ -204,9 +204,9 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-sm border-b flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -241,44 +241,48 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex flex-col lg:flex-row gap-6 h-full">
-          {/* Email List */}
-          <div className="flex-1 lg:max-w-md">
-            <EmailList
-              emails={emails}
-              selectedEmail={selectedEmail}
-              onEmailSelect={handleEmailSelect}
-              lastRefreshTime={lastRefreshTime}
-            />
-          </div>
+      <div className="flex-1 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
+          <div className="flex flex-col lg:flex-row gap-6 h-full">
+            {/* Email List */}
+            <div className="flex-1 lg:max-w-md h-full">
+              <EmailList
+                emails={emails}
+                selectedEmail={selectedEmail}
+                onEmailSelect={handleEmailSelect}
+                lastRefreshTime={lastRefreshTime}
+              />
+            </div>
 
-          {/* Email View */}
-          <div className="flex-1">
-            {selectedEmail ? (
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="border-b pb-4 mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                    {selectedEmail.subject}
-                  </h2>
-                  <div className="flex items-center justify-between text-sm text-gray-600">
-                    <span>From: {selectedEmail.from}</span>
-                    <span>{formatEmailDate(selectedEmail.date)}</span>
+            {/* Email View */}
+            <div className="flex-1 h-full">
+              {selectedEmail ? (
+                <div className="bg-white rounded-lg shadow h-full flex flex-col">
+                  <div className="flex-shrink-0 border-b p-6 pb-4">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                      {selectedEmail.subject}
+                    </h2>
+                    <div className="flex items-center justify-between text-sm text-gray-600">
+                      <span>From: {selectedEmail.from}</span>
+                      <span>{formatEmailDate(selectedEmail.date)}</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 overflow-auto p-6">
+                    <EmailContent 
+                      content={selectedEmail.body}
+                      className="prose max-w-none"
+                    />
                   </div>
                 </div>
-                <div className="mt-4">
-                  <EmailContent 
-                    content={selectedEmail.body}
-                    className="prose max-w-none"
-                  />
+              ) : (
+                <div className="bg-white rounded-lg shadow h-full flex items-center justify-center">
+                  <div className="text-center">
+                    <Mail className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    <p className="text-gray-500">Select an email to view its contents</p>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="bg-white rounded-lg shadow p-6 text-center">
-                <Mail className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <p className="text-gray-500">Select an email to view its contents</p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
