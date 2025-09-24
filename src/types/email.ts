@@ -11,6 +11,20 @@ export interface EmailMessage {
   read: boolean;
   attachments?: EmailAttachment[];
   category: 'automated' | 'human';
+  // Threading fields
+  messageId?: string;
+  inReplyTo?: string;
+  references?: string[];
+  threadId?: string;
+}
+
+export interface EmailThread {
+  id: string;
+  subject: string;
+  messages: EmailMessage[];
+  latestDate: Date;
+  hasUnread: boolean;
+  messageCount: number;
 }
 
 export interface EmailAttachment {

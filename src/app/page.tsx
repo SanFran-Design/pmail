@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { EmailMessage, EmailAccount } from '@/types/email';
+import { EmailMessage, EmailAccount, EmailThread } from '@/types/email';
 import { Mail, Send, RefreshCw, Settings, Plus, Reply } from 'lucide-react';
-import EmailList from '@/components/EmailList';
+import ThreadedEmailList from '@/components/ThreadedEmailList';
 import ComposeModal from '@/components/ComposeModal';
 import EmailConfigModal from '@/components/EmailConfigModal';
 import EmailContent from '@/components/EmailContent';
@@ -11,6 +11,7 @@ import { formatEmailDate, formatEmailDateTime } from '@/lib/utils';
 
 export default function Home() {
   const [emails, setEmails] = useState<EmailMessage[]>([]);
+  const [threads, setThreads] = useState<EmailThread[]>([]);
   const [showCompose, setShowCompose] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState<EmailMessage | null>(null);
@@ -61,6 +62,7 @@ export default function Home() {
       
       if (data.success) {
         setEmails(data.emails);
+        setThreads(data.threads || []);
         setLastRefreshTime(new Date());
       } else {
         console.error('Failed to fetch emails:', data.error);
@@ -299,8 +301,8 @@ export default function Home() {
                 </div>
               </div>
             ) : (
-              <EmailList
-                emails={emails}
+              <ThreadedEmailList
+                threads={threads}
                 selectedEmail={selectedEmail}
                 onEmailSelect={handleEmailSelect}
                 lastRefreshTime={lastRefreshTime}
@@ -312,8 +314,8 @@ export default function Home() {
           <div className="hidden lg:flex flex-col lg:flex-row gap-6 h-full">
             {/* Email List */}
             <div className="flex-1 lg:max-w-md h-full">
-              <EmailList
-                emails={emails}
+              <ThreadedEmailList
+                threads={threads}
                 selectedEmail={selectedEmail}
                 onEmailSelect={handleEmailSelect}
                 lastRefreshTime={lastRefreshTime}

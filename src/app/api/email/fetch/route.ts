@@ -3,6 +3,7 @@ import Imap from 'imap';
 import { simpleParser, AddressObject } from 'mailparser';
 import { IMAPConfig, EmailMessage } from '@/types/email';
 import { categorizeEmail } from '@/lib/utils';
+import { groupEmailsIntoThreads } from '@/lib/email-threading';
 
 // Helper function to extract email addresses from mailparser AddressObject
 function extractEmailAddresses(addressObj: any): string[] {
@@ -186,6 +187,19 @@ function fetchEmails(imap: Imap, limit: number = 10): Promise<EmailMessage[]> {
               const subject = parsed.subject || 'No Subject';
               const body = parsed.text || parsed.html || 'No content';
               
+              // Extract threading headers
+              const messageId = parsed.messageId || parsed.headers.get('message-id')?.toString();
+              const inReplyTo = parsed.inReplyTo || parsed.headers.get('in-reply-to')?.toString();
+              const referencesHeader = parsed.references || parsed.headers.get('references')?.toString();
+              
+              // Parse references header into array
+              let references: string[] = [];
+              if (referencesHeader) {
+                // References can be space-separated message IDs
+                const referencesString = Array.isArray(referencesHeader) ? referencesHeader.join(' ') : referencesHeader;
+                references = referencesString.split(/\s+/).filter((ref: string) => ref.trim().length > 0);
+              }
+              
               const emailMessage: EmailMessage = {
                 id: attributes.uid?.toString() || seqno.toString(),
                 from: senderInfo.email,
@@ -202,6 +216,10 @@ function fetchEmails(imap: Imap, limit: number = 10): Promise<EmailMessage[]> {
                   size: att.size || 0,
                 })),
                 category: categorizeEmail(senderInfo.email, subject, body),
+                // Threading fields
+                messageId: messageId,
+                inReplyTo: inReplyTo,
+                references: references.length > 0 ? references : undefined,
               };
 
               console.log('Processed email message:', {
@@ -255,11 +273,16 @@ export async function POST(request: NextRequest) {
     
     // Fetch emails
     const emails = await fetchEmails(imap, limit);
+    
+    // Group emails into threads
+    const threads = groupEmailsIntoThreads(emails);
 
     return NextResponse.json({
       success: true,
       emails,
+      threads,
       count: emails.length,
+      threadCount: threads.length,
     });
 
   } catch (error) {
