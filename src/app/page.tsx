@@ -53,7 +53,7 @@ export default function Home() {
         },
         body: JSON.stringify({
           imapConfig: currentAccount.imapConfig,
-          limit: 20,
+          limit: 100,
         }),
       });
 
