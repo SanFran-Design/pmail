@@ -26,7 +26,7 @@ function sanitizeHtml(html: string): string {
       'a', 'img', 
       'table', 'thead', 'tbody', 'tr', 'td', 'th',
       'blockquote', 'pre', 'code',
-      'font', 'center', // Common in email HTML
+      'font', 'center', 'hr', // Common in email HTML
     ],
     ALLOWED_ATTR: [
       'href', 'src', 'alt', 'title', 'width', 'height',
@@ -38,7 +38,19 @@ function sanitizeHtml(html: string): string {
     ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
   };
   
-  return DOMPurify.sanitize(html, config);
+  let sanitized = DOMPurify.sanitize(html, config);
+  
+  // Remove excessive table borders and styling that might cause horizontal lines
+  sanitized = sanitized.replace(/border="[^"]*"/g, (match) => {
+    // Only keep border="1" for data tables, remove others
+    return match === 'border="1"' ? match : 'border="0"';
+  });
+  
+  // Remove cellpadding and cellspacing that might cause spacing issues
+  sanitized = sanitized.replace(/cellpadding="[^"]*"/g, '');
+  sanitized = sanitized.replace(/cellspacing="[^"]*"/g, '');
+  
+  return sanitized;
 }
 
 export default function EmailContent({ content, className = '' }: EmailContentProps) {

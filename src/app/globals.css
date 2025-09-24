@@ -68,19 +68,47 @@
   }
   
   .email-html-content img {
-    @apply max-w-full h-auto my-2 rounded;
+    @apply max-w-full my-2 rounded;
+    height: auto !important;
+    max-height: 400px !important;
+    width: auto !important;
+    display: block;
   }
   
+  /* Special handling for logo-like images (typically smaller) */
+  .email-html-content img[width] {
+    max-width: 300px !important;
+  }
+  
+  .email-html-content img[height] {
+    max-height: 200px !important;
+  }
+  
+  /* Reset table styling for email layouts */
   .email-html-content table {
-    @apply w-full border-collapse my-4;
+    @apply border-collapse my-2;
+    border: none !important;
+    border-spacing: 0;
   }
   
   .email-html-content th,
   .email-html-content td {
-    @apply border border-gray-300 px-3 py-2 text-left;
+    @apply px-2 py-1 text-left;
+    border: none !important;
+    vertical-align: top;
   }
   
-  .email-html-content th {
+  /* Only apply borders to tables that seem to be data tables */
+  .email-html-content table[border]:not([border="0"]) {
+    @apply border border-gray-300 my-4;
+  }
+  
+  .email-html-content table[border]:not([border="0"]) th,
+  .email-html-content table[border]:not([border="0"]) td {
+    @apply border border-gray-300 px-3 py-2;
+  }
+  
+  .email-html-content table[border]:not([border="0"]) th {
     @apply bg-gray-100 font-semibold;
   }
   
@@ -96,6 +124,26 @@
     @apply bg-gray-100 px-1 py-0.5 rounded text-sm;
   }
 
+  /* Additional email styling fixes */
+  .email-html-content hr {
+    @apply my-4 border-gray-300;
+    border-width: 1px 0 0 0;
+  }
+  
+  .email-html-content div[style*="border"] {
+    border: none !important;
+  }
+  
+  /* Hide excessive spacing elements common in email HTML */
+  .email-html-content br + br + br {
+    display: none;
+  }
+  
+  /* Fix font family inheritance issues */
+  .email-html-content * {
+    font-family: inherit !important;
+  }
+  
   /* Email text content styling */
   .email-text-content {
     @apply max-w-none;
