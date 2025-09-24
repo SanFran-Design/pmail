@@ -124,12 +124,49 @@ export default function Home() {
     }
   };
 
-  const handleEmailSelect = (email: EmailMessage) => {
+  const handleEmailSelect = async (email: EmailMessage) => {
     setSelectedEmail(email);
-    // Mark as read
-    setEmails(prev => 
-      prev.map(e => e.id === email.id ? { ...e, read: true } : e)
-    );
+    
+    // If email is already read, no need to mark as read on server
+    if (email.read) {
+      return;
+    }
+
+    try {
+      // Mark as read on the email server
+      const response = await fetch('/api/email/mark-read', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imapConfig: emailAccount?.imapConfig,
+          emailId: email.id,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        // Update local state only after successful server update
+        setEmails(prev => 
+          prev.map(e => e.id === email.id ? { ...e, read: true } : e)
+        );
+        console.log('Email marked as read on server');
+      } else {
+        console.error('Failed to mark email as read on server:', data.error);
+        // Still update local state for better UX, but log the error
+        setEmails(prev => 
+          prev.map(e => e.id === email.id ? { ...e, read: true } : e)
+        );
+      }
+    } catch (error) {
+      console.error('Error marking email as read:', error);
+      // Still update local state for better UX, but log the error
+      setEmails(prev => 
+        prev.map(e => e.id === email.id ? { ...e, read: true } : e)
+      );
+    }
   };
 
   if (!isConfigured) {

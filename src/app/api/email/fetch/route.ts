@@ -99,7 +99,11 @@ function fetchEmails(imap: Imap, limit: number = 10): Promise<EmailMessage[]> {
         const recentResults = results.slice(-limit);
         const emails: EmailMessage[] = [];
 
-        const fetch = imap.fetch(recentResults, { bodies: '' });
+        const fetch = imap.fetch(recentResults, { 
+          bodies: '', 
+          struct: true, 
+          envelope: true 
+        });
         
         fetch.on('message', (msg, seqno) => {
           let buffer = '';
@@ -113,6 +117,12 @@ function fetchEmails(imap: Imap, limit: number = 10): Promise<EmailMessage[]> {
 
           msg.once('attributes', (attrs) => {
             attributes = attrs;
+            // Debug logging for attributes including UID
+            console.log(`Email seqno ${seqno} attributes:`, {
+              uid: attrs.uid,
+              flags: attrs.flags,
+              hasUID: !!attrs.uid
+            });
           });
 
           msg.once('end', async () => {
@@ -134,7 +144,7 @@ function fetchEmails(imap: Imap, limit: number = 10): Promise<EmailMessage[]> {
               const cleanCcAddresses = ccAddresses.map(addr => String(addr)).filter(Boolean);
               
               const emailMessage: EmailMessage = {
-                id: seqno.toString(),
+                id: attributes.uid?.toString() || seqno.toString(),
                 from: getFirstEmailAddress(parsed.from),
                 to: cleanToAddresses,
                 cc: cleanCcAddresses.length > 0 ? cleanCcAddresses : undefined,
@@ -151,10 +161,13 @@ function fetchEmails(imap: Imap, limit: number = 10): Promise<EmailMessage[]> {
 
               console.log('Processed email message:', {
                 id: emailMessage.id,
+                uid: attributes.uid,
+                seqno: seqno,
                 from: emailMessage.from,
                 to: emailMessage.to,
                 cc: emailMessage.cc,
-                subject: emailMessage.subject
+                subject: emailMessage.subject,
+                read: emailMessage.read
               });
 
               emails.push(emailMessage);
